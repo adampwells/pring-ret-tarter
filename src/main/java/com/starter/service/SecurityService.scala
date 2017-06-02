@@ -65,7 +65,8 @@ class SecurityService {
     val securityContext: SecurityContext = SecurityContextHolder.getContext
     try {
       val authentication = securityContext.getAuthentication.asInstanceOf[CustomAuthenticationToken]
-      authentication.getAuthorities.filter(_.getAuthority.equals(permission)).size == 1
+      if (authentication == null) false
+      else authentication.getAuthorities.filter(_.getAuthority.equals(permission)).size > 0
     } catch {
       case e: ClassCastException => {
         log.info("can't cast Authentication")
