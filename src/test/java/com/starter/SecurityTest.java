@@ -21,11 +21,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import scala.Option;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -84,5 +88,24 @@ public class SecurityTest {
         assertTrue(securityService.isValidSession(sessionDto.getSessionUid()));
 
     }
+
+    @Test
+    public void testApiSecurity() throws Exception {
+
+        mockMvc.perform(get("/api/v1/callLog")
+                .header("X-Auth-Token", "fake"))
+                .andExpect(status().isForbidden())
+                .andDo(print()).andReturn();
+
+        Option<SessionDto> administrator = securityService.login("administrator", "administrator", "", "");
+
+        mockMvc.perform(get("/api/v1/callLog")
+                .header("X-Auth-Token", administrator.get().getSessionUid()))
+                .andExpect(status().is2xxSuccessful())
+                .andDo(print()).andReturn();
+
+    }
+
+
 
 }
